@@ -31,7 +31,7 @@ public class PlayerController : MonoBehaviour
     {
         Movement();
         Bounds();
-        //GravityChange();
+        GravityChange();
     }
 
     private void Movement()
@@ -76,6 +76,18 @@ public class PlayerController : MonoBehaviour
         {
             Physics.gravity *= 0.3f;
         }
+
+        /*
+           currentTime += Time.deltaTime;
+           if(currentTime > totalTime)
+           {
+           currentTime = 0.0f;
+           destinationAngle = 0.0f;
+           }
+           Quaternion quat = new Quaternion();
+           quat.eulerAngles = new Vector3(transform.rotation.x, transform.rotation.y, Mathf.LerpAngle(transform.rotation.z, 180.0f, currentTime / totalTime));
+           transform.rotation = quat;
+        */
 
     }
 
