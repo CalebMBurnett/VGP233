@@ -17,12 +17,19 @@ public class PlayerController : MonoBehaviour
     private Vector3 inputVector;
     private Vector3 rotationOffset = new Vector3(0.0f, -90.0f, 0.0f);
     private float gChangeLevel = 13.75f;
+
+    private float currentTime = 0.0f;
+    private float rotationTime = 2.0f;
+    private float angle = 180f;
+    private bool upsideDown = false;
+
+
     void Start()
     {
         transform.Rotate(rotationOffset);
         playerRb = GetComponent<Rigidbody>();
         playerCollider = GetComponent<BoxCollider>();
-        Physics.gravity *= gravityMod;
+        Physics.gravity *= -gravityMod;
 
     }
 
@@ -31,7 +38,19 @@ public class PlayerController : MonoBehaviour
     {
         Movement();
         Bounds();
-        GravityChange();
+        //GravityChange();
+        currentTime += Time.deltaTime;
+        if(currentTime > rotationTime)
+        {
+            upsideDown = true;
+            currentTime = 0;
+        }
+        if(!upsideDown)
+        {
+            Quaternion gRotation = new Quaternion();
+            gRotation.eulerAngles = new Vector3(transform.rotation.x, transform.rotation.y, Mathf.LerpAngle(transform.rotation.z, angle, currentTime / rotationTime));
+            transform.rotation = gRotation;
+        }
     }
 
     private void Movement()
@@ -67,27 +86,35 @@ public class PlayerController : MonoBehaviour
 
     private void GravityChange()
     {
-        if (transform.position.y > (gChangeLevel + 1))
+        if (transform.position.y > gChangeLevel)
         {
             Physics.gravity *= -gravityMod;
-            //transform.Rotate(180f, 0, 0);
+            //currentTime += Time.deltaTime;
+            //if(currentTime > rotationTime)
+            //{
+            //    upsideDown = true;
+            //    currentTime = 0;
+            //}
+            //if(!upsideDown)
+            //{
+            //    Quaternion gRotation = new Quaternion();
+            //    gRotation.eulerAngles = new Vector3(transform.rotation.x, transform.rotation.y, Mathf.LerpAngle(transform.rotation.z, angle, currentTime / rotationTime));
+            //    transform.rotation = gRotation;
+            //}
         }
-        else if (transform.position.y > (gChangeLevel - 1) && transform.position.y < (gChangeLevel + 2))
-        {
-            Physics.gravity *= 0.3f;
-        }
-
-        /*
-           currentTime += Time.deltaTime;
-           if(currentTime > totalTime)
-           {
-           currentTime = 0.0f;
-           destinationAngle = 0.0f;
-           }
-           Quaternion quat = new Quaternion();
-           quat.eulerAngles = new Vector3(transform.rotation.x, transform.rotation.y, Mathf.LerpAngle(transform.rotation.z, 180.0f, currentTime / totalTime));
-           transform.rotation = quat;
-        */
+        
+        //if(upsideDown && transform.position.y < gChangeLevel)
+        //{
+        //    currentTime += Time.deltaTime;
+        //    if (currentTime > rotationTime)
+        //    {
+        //        upsideDown = false;
+        //        currentTime = 0;
+        //    }
+        //    Quaternion gRotation = new Quaternion();
+        //    gRotation.eulerAngles = new Vector3(transform.rotation.x, transform.rotation.y, Mathf.LerpAngle(transform.rotation.z, angle, currentTime / rotationTime));
+        //    transform.rotation = gRotation;
+        //}
 
     }
 
