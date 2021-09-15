@@ -16,21 +16,23 @@ public class PlayerController : MonoBehaviour
     private Animator playerAnimator;
     private Vector3 inputVector;
     private Vector3 rotationOffset = new Vector3(0.0f, -90.0f, 0.0f);
-    private float gChangeLevel = 13.75f;
 
-    private float currentTime = 0.0f;
-    private float rotationTime = 2.0f;
-    private float angle = 180f;
-    private bool upsideDown = false;
-
+    private int flipped = 1;
+    private bool upSide = true;
+    private float gChangeLevel = 14.25f;
+    private Vector3 scaleChangeDown;
+    private Vector3 scaleChangeUp;
 
     void Start()
     {
         transform.Rotate(rotationOffset);
         playerRb = GetComponent<Rigidbody>();
         playerCollider = GetComponent<BoxCollider>();
-        Physics.gravity *= -gravityMod;
 
+        scaleChangeDown = new Vector3(0.0f, transform.localScale.y * -2, 0.0f);
+        scaleChangeUp = new Vector3(0.0f, transform.localScale.y * 2, 0.0f);
+
+        Physics.gravity *= gravityMod;
     }
 
     // Update is called once per frame
@@ -38,29 +40,22 @@ public class PlayerController : MonoBehaviour
     {
         Movement();
         Bounds();
-        //GravityChange();
-        currentTime += Time.deltaTime;
-        if(currentTime > rotationTime)
-        {
-            upsideDown = true;
-            currentTime = 0;
-        }
-        if(!upsideDown)
-        {
-            Quaternion gRotation = new Quaternion();
-            gRotation.eulerAngles = new Vector3(transform.rotation.x, transform.rotation.y, Mathf.LerpAngle(transform.rotation.z, angle, currentTime / rotationTime));
-            transform.rotation = gRotation;
-        }
+        Flip();
     }
 
     private void Movement()
     {
         inputVector = new Vector3(Input.GetAxis("Horizontal") * speed, playerRb.velocity.y, 0);
         transform.LookAt(transform.position + new Vector3(inputVector.x, 0.0f, 0.0f));
-
-        if (Input.GetKeyDown(KeyCode.Space) && OnGroud())
+        
+        if (Input.GetKeyDown(KeyCode.Space) && OnGroud()) 
         {
-            playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            if(upSide)
+            {
+                playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            }
+            else playerRb.AddForce(Vector3.up * -jumpForce, ForceMode.Impulse);
+
         }
     }
 
@@ -79,42 +74,46 @@ public class PlayerController : MonoBehaviour
 
     private bool OnGroud()
     {
-        return Physics.CheckCapsule(playerCollider.bounds.center
+        if(upSide)
+        {
+            return Physics.CheckCapsule(playerCollider.bounds.center
             , new Vector3(playerCollider.bounds.center.x, playerCollider.bounds.min.y, playerCollider.bounds.center.z)
             , playerCollider.size.y / 2 * 0.95f, jumpLayers);
+        }
+        else
+        {
+            return Physics.CheckCapsule(playerCollider.bounds.center
+            , new Vector3(playerCollider.bounds.center.x, playerCollider.bounds.max.y, playerCollider.bounds.center.z)
+            , playerCollider.size.y / 2 * 0.95f, jumpLayers);
+        }
+        
+
+
+        
     }
 
-    private void GravityChange()
+    private void Flip()
     {
         if (transform.position.y > gChangeLevel)
         {
-            Physics.gravity *= -gravityMod;
-            //currentTime += Time.deltaTime;
-            //if(currentTime > rotationTime)
-            //{
-            //    upsideDown = true;
-            //    currentTime = 0;
-            //}
-            //if(!upsideDown)
-            //{
-            //    Quaternion gRotation = new Quaternion();
-            //    gRotation.eulerAngles = new Vector3(transform.rotation.x, transform.rotation.y, Mathf.LerpAngle(transform.rotation.z, angle, currentTime / rotationTime));
-            //    transform.rotation = gRotation;
-            //}
+            upSide = false;
+            if(flipped == 1)
+            {
+                flipped *= -1;
+                transform.localScale += scaleChangeDown;
+                Physics.gravity *= -1;
+            }
         }
-        
-        //if(upsideDown && transform.position.y < gChangeLevel)
-        //{
-        //    currentTime += Time.deltaTime;
-        //    if (currentTime > rotationTime)
-        //    {
-        //        upsideDown = false;
-        //        currentTime = 0;
-        //    }
-        //    Quaternion gRotation = new Quaternion();
-        //    gRotation.eulerAngles = new Vector3(transform.rotation.x, transform.rotation.y, Mathf.LerpAngle(transform.rotation.z, angle, currentTime / rotationTime));
-        //    transform.rotation = gRotation;
-        //}
+        else if(transform.position.y < gChangeLevel && upSide == false)
+        {
+            upSide = true;
+            if(flipped == -1)
+            {
+                flipped *= -1;
+                transform.localScale += scaleChangeUp;
+                Physics.gravity *= -1;
+            }
+        }
 
     }
 
